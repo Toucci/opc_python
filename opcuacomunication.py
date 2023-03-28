@@ -1,15 +1,18 @@
+"""Importando as bibliotecas que serão utilizadas"""
 #importar opencv
 import datetime
 import cv2
+#Biblioteca para realizar a leitura do código de barras utilizando uma webcam
 from pyzbar.pyzbar import decode
-#import numpy as np
+#Importando as bibliotecas para realizar as conexões de servidores. 
 import sys
 from opcua import Client
 from opcua import ua
 
-
+#endereço do CLP URL
 url = "opc.tcp://192.168.15.12:4840"
 
+#Tenta encontrar a conexão com o endereço opc, caso contrário retorna erro e não realiza a conexão
 try:
     client = Client(url)
     client.session_timeout = 30000
@@ -35,18 +38,15 @@ while True:
     ret,frame = captura.read() #ret e frames são variáveis que criamos - Ret é bool e retorna true caso seja possível ler alguma coisa da fonte de video, já a var frame é para armazenar a imagem
     
     
-    #frame = cv2.imread("//192.168.15.11/img aula/qr.jpg")
    
-
+    #Definindo a janela da webcam, com cores, sizes e a importação da biblioteca openCV para visualização.
 
     frame = cv2.resize(frame,(640,480))
     frame =  cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
     ret2,thres = cv2.threshold(frame,100,255,cv2.THRESH_BINARY)
     
-    #cv2.imwrite("C:/Users/alunoredes/Pictures/Nova pasta/COPIA.JPG",frame)
-    #frame = cv2.imread("C:/Users/alunoredes/Pictures/Nova pasta/COPIA.JPG") 
 
-    
+    #Utiliza a função da biblioteca pyzbar para realizar a detectação do QR.
     detectedBarcodes = decode(thres) 
     
     if not detectedBarcodes: 
@@ -63,6 +63,8 @@ while True:
                 
                 #print(barcode.type)
 
+                
+                #Realizando a leitura dos QR'S e seus títulos. Aqui lemos a variável importada do software Machine Expert e ativamos a funcionalidade.
                 if str(barcode.data) == "b'TRUE'" :
                     enable = client.get_node("ns=2;s=Application.OPC.enable").set_attribute(ua.AttributeIds.Value, ua.DataValue(True))
                     datavalue = ua.DataValue(ua.Variant(True, ua.VariantType.Boolean))
@@ -107,7 +109,7 @@ while True:
                 
 
 
-
+    #Retorna as janelas de visualização da webcam.
     cv2.imshow("frame",frame)
     cv2.imshow("binaria",thres)
 
@@ -117,6 +119,7 @@ while True:
     #guarda o botão que foi apertado na variavel key
     key = cv2.waitKey(300) #se usar 0 aguarda cada clique em qualquer tecla, qualquer outro numero vira delay em ms
 
+    #Se pressionar a tecla Q o programa será finalizado.
     if key == ord("q"):
         break
 #finally:
